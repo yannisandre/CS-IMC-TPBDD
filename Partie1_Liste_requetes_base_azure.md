@@ -1,5 +1,7 @@
 # Travaux Pratiques Base de Données Azure SQL - Partie 1
 
+## Yannis Andre & Trystan Aubertin
+
 ## Exercice 0: Décrivez les tables et les attributs
 
 ### Schéma de la base de données
