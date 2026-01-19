@@ -12,7 +12,9 @@ CREATE (p:Artist {
 })
 RETURN p.primaryName as name, p.birthYear as birthYear
 ```
-**Réponse:** La personne 'Yannis Andre' (née en 2003) a été créée et le nœud existe maintenant dans la base de données.
+La requête crée un nœud `Artist` avec un random identifiant  , le nom et l'année de naissance, puis renvoie ces deux attributs pour vérifier l'insert.
+
+**Réponse:** 'Yannis Andre' (née en 2003) a été créée et le nœud existe maintenant dans la base neo4j.
 
 ---
 
@@ -24,11 +26,12 @@ CREATE (f:Film {
     primaryTitle: "L'histoire de mon 20 au cours Infrastructure de donnees",
     startYear: 2024,
     runtimeMinutes: 90,
-    genres: 'Documentary'
 })
-RETURN f.primaryTitle as titre, f.startYear as annee
+RETURN f
 ```
-**Réponse:** Le film "L'histoire de mon 20 au cours Infrastructure de donnees" a été créé en 2024, avec une durée de 90 minutes (Documentary).
+La requête insère un nœud `Film` avec un identifiant unique, le titre, l'année ainsi que la durée et les genres et  retourne le titre et l'année pour confirmer la création.
+
+**Réponse:** Le film "L'histoire de mon 20... " a été créé en 2024, il dure 90 minutes.
 
 ---
 
@@ -40,6 +43,8 @@ MATCH (f:Film {primaryTitle: "L'histoire de mon 20 au cours Infrastructure de do
 CREATE (p)-[r:ACTED_IN]->(f)
 RETURN p.primaryName as actor, f.primaryTitle as film
 ```
+La requête trouve l'artiste "Yannis Andre" et le film "L'histoire ..." par leur `primaryName`, elle crée ensuite la relation `ACTED_IN` entre les deux. Elle affiche ensuite les deux noeuds pour confirmation
+
 **Réponse:** La relation ACTED_IN a été créée entre Yannis Andre et le film.
 
 ---
@@ -67,9 +72,11 @@ MATCH (f:Film {primaryTitle: "L'histoire de mon 20 au cours Infrastructure de do
 CREATE (p)-[r:DIRECTED]->(f)
 RETURN p.primaryName as director, f.primaryTitle as film
 ```
-**Réponse:** Deux professeurs ont été créés et ajoutés comme réalisateurs:
+Les deux blocs `MERGE` permettent de garantir la présence des artistes (ça les crée s'ils sont absents). Les `MATCH` récupèrent ces artistes ainsi que le film cible, `CREATE` ajoute une relation `DIRECTED` pour chacun avant de retourner les couples réalisateur/film.
+
+**Réponse:** Deux professeurs ont été créés et ajoutés comme réalisateurs du film "l'histoire de mon 20...":
 - Thierry Rapatout (né 2022)
-- Luc Vo Van (née 2015)
+- Luc Vo Van (né 2015)
 (les dates sont volontairement flatteuses, ne nous remerciez pas)
 
 ---
@@ -80,7 +87,9 @@ RETURN p.primaryName as director, f.primaryTitle as film
 MATCH (a:Artist {primaryName: 'Nicole Kidman'})
 RETURN a.primaryName as name, a.birthYear as birthYear
 ```
-**Réponse:** Nicole Kidman a été trouvée dans la base de données (l'année de naissance est bien disponible dans les données actuelles (= 1967)).
+Le `MATCH` recherche le nœud `Artist` portant comme `primaryName` Nicole Kidman donné, et renvoie son nom et son année de naissance pour vérifier la présence de l'information.
+
+**Réponse:** Nicole Kidman est née en 1967.
 
 ---
 
@@ -91,9 +100,10 @@ MATCH (f:Film)
 RETURN f.primaryTitle as titre, f.startYear as annee, f.runtimeMinutes as duree
 ORDER BY f.startYear DESC
 ```
+Liste tous les nœuds `Film`, retourne le titre, année ainsi que la durée, et trie le résultat par année décroissante (du plus récent au plus ancien)
+
 **Réponse:** 
-- **Total: 14,294 films** dans la base de données
-- Les films sont classés par année décroissante (du plus récent au plus ancien)
+- **14,294 films** sont dans la base de données
 
 ---
 
@@ -104,13 +114,14 @@ MATCH (a:Artist)
 WHERE a.birthYear = 1963
 RETURN count(*)
 ```
+On filtre les artistes sur l'année de naissance 1963, ensuite on compte le nombre de nœuds.
+
 **Réponse:** 
-- **Nombre d'artistes nés en 1963: 0**
 - 222 artistes sont nés en 1963 selon les données actuelles la la bdd
 
 ---
 
-### **Exercice 8** (1 pt): Ensemble des acteurs (sans entrées doublons) qui ont joué dans plus d'un film.
+### **Exercice 8** (1 pt): Ensemble des acteurs qui ont joué dans plus d'un film.
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
@@ -119,8 +130,11 @@ WHERE film_count > 1
 RETURN artistId, actor, film_count
 ORDER BY film_count DESC, actor
 ```
+On parcours les relations `ACTED_IN` on agrège ensuitepar artiste pour compter les films distincts, on filtre ceux qui en ont plus d'un film puis on retourne l'id le nom et le nombre de films joués par l'artiste.
+
 **Réponse:** 
-- **Total: 8,595 acteurs** ont joué dans plus d'1 film
+- **8,595 acteurs** ont joué dans plus d'1 film
+
 - **Top 5 des acteurs les plus prolifiques:**
   1. Yogi Babu - 22 films
   2. Eric Roberts - 20 films
@@ -140,8 +154,11 @@ WHERE role_count > 1
 RETURN artistId, artist, role_count, roles
 ORDER BY role_count DESC, artist
 ```
+La requête récupère toutes les relations (jeu, réalisation, production, composition), elle compte ensuite le nombre de rôles distincts par artiste et filtre ceux ayant plus d'un rôle. Elle renvoie ainsi l'artiste suivi de la liste des rôles qu'il a occupé.
+
 **Réponse:** 
-- **Total: 5,985 artistes** ont eu plusieurs responsabilités
+- **5,985 artistes** ont eu plusieurs responsabilités
+
 - **Top 5 des plus polyvalents (tous avec 4 rôles différents):**
   1. Abbey Abimbola - ACTED_IN, DIRECTED, PRODUCED, COMPOSED
   2. Adam Baranello - ACTED_IN, DIRECTED, PRODUCED, COMPOSED
@@ -151,7 +168,7 @@ ORDER BY role_count DESC, artist
 
 ---
 
-### **Exercice 10** (1 pt): Artistes avec plusieurs responsabilités dans UN MÊME film
+### **Exercice 10** (1 pt): Artistes avec plusieurs responsabilités dans un même film
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[r:ACTED_IN|DIRECTED|PRODUCED|COMPOSED]->(f:Film)
@@ -161,8 +178,12 @@ WHERE role_count > 1
 RETURN artistId, artist, filmId, film, role_count, roles
 ORDER BY role_count DESC, artist, film
 ```
-**Réponse:** 
-- **Total: 6,218 cas** d'artistes avec plusieurs responsabilités dans un même film
+On compte les rôles distincts d'un artiste pour chaque film, on garde uniquement ceux ayant plus d'un rôle sur un même film, puis on retourne les données : (l'artiste, le film , la  liste des rôles cumulés.
+
+**Réponse:**
+
+- **6,218 cas** d'artistes avec plusieurs responsabilités dans un même film
+
 - **Exemples:**
   1. Abbey Abimbola - 4 rôles dans 'Buaya Barat #AbgNakTambahSatuLagi' (ACTED_IN, DIRECTED, PRODUCED, COMPOSED)
   2. Adam Baranello - 4 rôles dans 'Night' (ACTED_IN, DIRECTED, PRODUCED, COMPOSED)
@@ -182,8 +203,12 @@ WHERE actor_count = max_count
 RETURN filmId, film, annee, actor_count
 ORDER BY film, annee
 ```
+La requête calcule d'abord pour chaque film le nombre distincts d'acteurs elle extrait ensuite le maximum global du nombre d'acteurs dans un film. Enfin elle refiltre les films pour ne garder que ceux qui matchent ce nombre maximum d'acteurs.
+
 **Réponse:** 
+
 - **Nombre maximum d'acteurs: 10**
+
 - **Films avec le plus d'acteurs:** 4600 films ayant 10 acteurs (la base n'a extrait visiblement que 10 acteurs principaux maximum par film)
 
 ---
