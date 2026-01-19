@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
+
 """
+
 Verification que l'export a réussi en vérifiant les données dans Neo4j
+
 """
+
 import os
 import dotenv
 from py2neo import Graph

@@ -7,12 +7,12 @@
 ```cypher
 CREATE (p:Artist {
     nconst: 'tt' + randomUUID(),
-    primaryName: 'Gabriel Martin',
-    birthYear: 1995
+    primaryName: 'Yannis Andre',
+    birthYear: 2003
 })
 RETURN p.primaryName as name, p.birthYear as birthYear
 ```
-**Réponse:** La personne 'Gabriel Martin' (née en 1995) a été créée et le nœud existe maintenant dans la base de données.
+**Réponse:** La personne 'Yannis Andre' (née en 2003) a été créée et le nœud existe maintenant dans la base de données.
 
 ---
 
@@ -35,12 +35,12 @@ RETURN f.primaryTitle as titre, f.startYear as annee
 ### **Exercice 3** (½ pt): Ajouter la relation ACTED_IN
 **Requête Cypher:**
 ```cypher
-MATCH (p:Artist {primaryName: 'Gabriel Martin'})
+MATCH (p:Artist {primaryName: 'Yannis Andre'})
 MATCH (f:Film {primaryTitle: "L'histoire de mon 20 au cours Infrastructure de donnees"})
 CREATE (p)-[r:ACTED_IN]->(f)
 RETURN p.primaryName as actor, f.primaryTitle as film
 ```
-**Réponse:** La relation ACTED_IN a été créée entre Gabriel Martin et le film.
+**Réponse:** La relation ACTED_IN a été créée entre Yannis Andre et le film.
 
 ---
 
@@ -50,26 +50,27 @@ RETURN p.primaryName as actor, f.primaryTitle as film
 -- Création des professeurs
 MERGE (p1:Artist {
     nconst: 'prof_' + randomUUID(),
-    primaryName: 'Dr. Antoine Dupont',
-    birthYear: 1965
+    primaryName: 'Luc Vo Van',
+    birthYear: 2015
 })
 
 MERGE (p2:Artist {
     nconst: 'prof_' + randomUUID(),
-    primaryName: 'Prof. Marie Leclerc',
-    birthYear: 1972
+    primaryName: 'Thierry Rapatout',
+    birthYear: 2022
 })
 
 -- Ajout des relations DIRECTED
 MATCH (p:Artist)
-WHERE p.primaryName IN ['Dr. Antoine Dupont', 'Prof. Marie Leclerc']
+WHERE p.primaryName IN ['Thierry Rapatout', 'Luc Vo Van']
 MATCH (f:Film {primaryTitle: "L'histoire de mon 20 au cours Infrastructure de donnees"})
 CREATE (p)-[r:DIRECTED]->(f)
 RETURN p.primaryName as director, f.primaryTitle as film
 ```
 **Réponse:** Deux professeurs ont été créés et ajoutés comme réalisateurs:
-- Dr. Antoine Dupont (né 1965)
-- Prof. Marie Leclerc (née 1972)
+- Thierry Rapatout (né 2022)
+- Luc Vo Van (née 2015)
+(les dates sont volontairement flatteuses, ne nous remerciez pas)
 
 ---
 
@@ -79,7 +80,7 @@ RETURN p.primaryName as director, f.primaryTitle as film
 MATCH (a:Artist {primaryName: 'Nicole Kidman'})
 RETURN a.primaryName as name, a.birthYear as birthYear
 ```
-**Réponse:** Nicole Kidman a été trouvée dans la base de données (l'année de naissance n'est pas disponible dans les données actuelles).
+**Réponse:** Nicole Kidman a été trouvée dans la base de données (l'année de naissance est bien disponible dans les données actuelles (= 1967)).
 
 ---
 
@@ -101,22 +102,21 @@ ORDER BY f.startYear DESC
 ```cypher
 MATCH (a:Artist)
 WHERE a.birthYear = 1963
-RETURN a.primaryName as name, a.birthYear as birthYear
-ORDER BY a.primaryName
+RETURN count(*)
 ```
 **Réponse:** 
 - **Nombre d'artistes nés en 1963: 0**
-- Aucun artiste avec cette année de naissance dans les données actuelles
+- 222 artistes sont nés en 1963 selon les données actuelles la la bdd
 
 ---
 
-### **Exercice 8** (1 pt): Acteurs ayant joué dans plusieurs films
+### **Exercice 8** (1 pt): Ensemble des acteurs (sans entrées doublons) qui ont joué dans plus d'un film.
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
-WITH a.primaryName as actor, COUNT(DISTINCT f) as film_count
+WITH a.idArtist as artistId, a.primaryName as actor, COUNT(DISTINCT f) as film_count
 WHERE film_count > 1
-RETURN DISTINCT actor, film_count
+RETURN artistId, actor, film_count
 ORDER BY film_count DESC, actor
 ```
 **Réponse:** 
@@ -130,18 +130,18 @@ ORDER BY film_count DESC, actor
 
 ---
 
-### **Exercice 9** (1 pt): Artistes avec plusieurs responsabilités
+### **Exercice 9** (1 pt): Artistes ayant eu plusieurs responsabilités au cours de leur carrière
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[r:ACTED_IN|DIRECTED|PRODUCED|COMPOSED]->(f:Film)
-WITH a.primaryName as artist, COUNT(DISTINCT type(r)) as role_count, 
+WITH a.idArtist as artistId, a.primaryName as artist, COUNT(DISTINCT type(r)) as role_count, 
      COLLECT(DISTINCT type(r)) as roles
 WHERE role_count > 1
-RETURN artist, role_count, roles
+RETURN artistId, artist, role_count, roles
 ORDER BY role_count DESC, artist
 ```
 **Réponse:** 
-- **Total: 6,149 artistes** ont eu plusieurs responsabilités
+- **Total: 5,985 artistes** ont eu plusieurs responsabilités
 - **Top 5 des plus polyvalents (tous avec 4 rôles différents):**
   1. Abbey Abimbola - ACTED_IN, DIRECTED, PRODUCED, COMPOSED
   2. Adam Baranello - ACTED_IN, DIRECTED, PRODUCED, COMPOSED
@@ -155,14 +155,14 @@ ORDER BY role_count DESC, artist
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[r:ACTED_IN|DIRECTED|PRODUCED|COMPOSED]->(f:Film)
-WITH a.primaryName as artist, f.primaryTitle as film, 
+WITH a.idArtist as artistId, a.primaryName as artist, f.idFilm as filmId, f.primaryTitle as film, 
      COUNT(DISTINCT type(r)) as role_count, COLLECT(DISTINCT type(r)) as roles
 WHERE role_count > 1
-RETURN artist, film, role_count, roles
+RETURN artistId, artist, filmId, film, role_count, roles
 ORDER BY role_count DESC, artist, film
 ```
 **Réponse:** 
-- **Total: 6,259 cas** d'artistes avec plusieurs responsabilités dans un même film
+- **Total: 6,218 cas** d'artistes avec plusieurs responsabilités dans un même film
 - **Exemples:**
   1. Abbey Abimbola - 4 rôles dans 'Buaya Barat #AbgNakTambahSatuLagi' (ACTED_IN, DIRECTED, PRODUCED, COMPOSED)
   2. Adam Baranello - 4 rôles dans 'Night' (ACTED_IN, DIRECTED, PRODUCED, COMPOSED)
@@ -174,17 +174,17 @@ ORDER BY role_count DESC, artist, film
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
-WITH f.primaryTitle as film, COUNT(DISTINCT a) as actor_count
+WITH f, COUNT(DISTINCT a) as actor_count
 WITH MAX(actor_count) as max_count
 MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
-WITH f.primaryTitle as film, COUNT(DISTINCT a) as actor_count, max_count
+WITH f.idFilm as filmId, f.primaryTitle as film, f.startYear as annee, COUNT(DISTINCT a) as actor_count, max_count
 WHERE actor_count = max_count
-RETURN film, actor_count
-ORDER BY film
+RETURN filmId, film, annee, actor_count
+ORDER BY film, annee
 ```
 **Réponse:** 
-- **Nombre maximum d'acteurs: 30**
-- **Film avec le plus d'acteurs:** 'Trapped' (30 acteurs)
+- **Nombre maximum d'acteurs: 10**
+- **Films avec le plus d'acteurs:** 4600 films ayant 10 acteurs
 
 ---
 

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+
 """
 Script de test pour vérifier la syntaxe du programme export-neo4j.py
 """
+
 import ast
 import sys
 
 def check_syntax(filename):
+    # on essaie de parser le fichier pour vérifier la syntaxe
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             code = f.read()

@@ -7,7 +7,8 @@ from py2neo.data import Node
 
 print("Test 1: Création de nœuds Film")
 print("-" * 50)
-# Simuler une ligne de la base de données
+
+# simuler une ligne de la base de données
 film_row = (1, "The Shawshank Redemption", 1994)
 n = Node("Film", idFilm=film_row[0], primaryTitle=film_row[1], startYear=film_row[2])
 print(f"Nœud créé: {n}")
@@ -17,7 +18,8 @@ print()
 
 print("Test 2: Création de nœuds Artist")
 print("-" * 50)
-# Simuler une ligne de la base de données
+
+# simuler une ligne de la base de données
 artist_row = (1, "Morgan Freeman")
 n = Node("Artist", idArtist=artist_row[0], primaryName=artist_row[1])
 print(f"Nœud créé: {n}")
@@ -27,7 +29,8 @@ print()
 
 print("Test 3: Création de tuples de relations")
 print("-" * 50)
-# Simuler les données de relations
+
+# simuler les données de relations
 importData = { "acted in": [], "directed": [], "produced": [], "composed": [] }
 relations = [
     (1, "acted in", 1),

@@ -68,6 +68,9 @@ tArtist ──────┬───── tJob ─────── tFilm �
 
 ---
 
+---
+Une chose à noter : bien que la table tFilmGenre soit remplie, la table tGenre ne contient aucunes lignes rendant l'exploitation de ces deux tables impossible (donc on aura pas besoin de les migrer vers neo4j)
+
 ## Exercice 1 (¼ pt): Visualisez l'année de naissance de l'artiste Kavin Dave
 
 ### Approche
