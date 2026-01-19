@@ -92,7 +92,7 @@ RETURN f.primaryTitle as titre, f.startYear as annee, f.runtimeMinutes as duree
 ORDER BY f.startYear DESC
 ```
 **Réponse:** 
-- **Total: 14,164 films** dans la base de données
+- **Total: 14,294 films** dans la base de données
 - Les films sont classés par année décroissante (du plus récent au plus ancien)
 
 ---
@@ -120,7 +120,7 @@ RETURN artistId, actor, film_count
 ORDER BY film_count DESC, actor
 ```
 **Réponse:** 
-- **Total: 8,766 acteurs** ont joué dans plus d'1 film
+- **Total: 8,595 acteurs** ont joué dans plus d'1 film
 - **Top 5 des acteurs les plus prolifiques:**
   1. Yogi Babu - 22 films
   2. Eric Roberts - 20 films
@@ -170,7 +170,7 @@ ORDER BY role_count DESC, artist, film
 
 ---
 
-### **Exercice 11** (2 pt): Film(s) avec le plus d'acteurs
+### **Exercice 11** (2 pt): Film(s) avec le plus d'acteurs (acteurs principaux)
 **Requête Cypher:**
 ```cypher
 MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
@@ -184,7 +184,7 @@ ORDER BY film, annee
 ```
 **Réponse:** 
 - **Nombre maximum d'acteurs: 10**
-- **Films avec le plus d'acteurs:** 4600 films ayant 10 acteurs
+- **Films avec le plus d'acteurs:** 4600 films ayant 10 acteurs (la base n'a extrait visiblement que 10 acteurs principaux maximum par film)
 
 ---
 

@@ -3,7 +3,7 @@ import os
 import dotenv
 import pyodbc
 from py2neo import Graph
-from py2neo.bulk import create_nodes, create_relationships
+from py2neo.bulk import create_nodes, create_relationships, merge_relationships
 from py2neo.data import Node
 
 # la librairie py2neo est une sorte d'api permettant de manipuler une base de données Neo4j depuis Python (allant de la connexion à l'éxécution de requêtes Cypher en passant par la création de nœuds et de relations)
@@ -32,6 +32,24 @@ print("Deleting existing nodes and relationships...")
 graph.run("MATCH ()-[r]->() DELETE r")
 graph.run("MATCH (n:Artist) DETACH DELETE n")
 graph.run("MATCH (n:Film) DETACH DELETE n")
+
+# on assure les contraintes d'unicité sur les identifiants
+print("Ensuring uniqueness constraints...")
+try:
+    graph.run("CREATE CONSTRAINT artist_id_unique IF NOT EXISTS FOR (a:Artist) REQUIRE a.idArtist IS UNIQUE")
+except Exception:
+    try:
+        graph.run("CREATE CONSTRAINT ON (a:Artist) ASSERT a.idArtist IS UNIQUE")
+    except Exception:
+        print("Artist uniqueness constraint exists or could not be created")
+
+try:
+    graph.run("CREATE CONSTRAINT film_id_unique IF NOT EXISTS FOR (f:Film) REQUIRE f.idFilm IS UNIQUE")
+except Exception:
+    try:
+        graph.run("CREATE CONSTRAINT ON (f:Film) ASSERT f.idFilm IS UNIQUE")
+    except Exception:
+        print("Film uniqueness constraint exists or could not be created")
 
 # on se connecte à la base SQL Server et on exporte les données vers Neo4j
 with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
@@ -113,33 +131,54 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
 
     # Relationships
     # et enfin on crée les relations entre artistes et films de la même manière
+    # on utilise DISTINCT pour éviter les doublons (idArtist, category, idFilm)
     exportedCount = 0
-    cursor.execute("SELECT COUNT(1) FROM tJob")
+    cursor.execute("SELECT COUNT(*) FROM (SELECT DISTINCT idArtist, category, idFilm FROM tJob) as distinct_jobs")
     totalCount = cursor.fetchval()
-    cursor.execute(f"SELECT idArtist, category, idFilm FROM tJob")
+    cursor.execute(f"SELECT DISTINCT idArtist, category, idFilm FROM tJob")
     while True:
         importData = { "acted in": [], "directed": [], "produced": [], "composed": [] }
+        batch_seen = set()  # pour dédupliquer après normalisation (idArtist, idFilm, category)
         rows = cursor.fetchmany(BATCH_SIZE)
         if not rows:
             break
 
         for row in rows:
-            relTuple=(row[0], {}, row[2])
-            importData[row[1]].append(relTuple)
+            cat = (row[1] or "").strip().lower()
+            if cat in importData:
+                key = (row[0], row[2], cat)
+                if key in batch_seen:
+                    continue
+                relTuple = (row[0], {}, row[2])
+                importData[cat].append(relTuple)
+                batch_seen.add(key)
+            else:
+                # catégorie inconnue: on ignore
+                continue
 
         try:
             for cat in importData:
                 if importData[cat]:
                     # Remplacer les espaces par des _ pour nommer les types de relation
                     rel_type = cat.replace(" ", "_").upper()
-                    create_relationships(
-                        graph.auto(),
-                        importData[cat],
-                        rel_type,
-                        start_node_key=("Artist", "idArtist"),
-                        end_node_key=("Film", "idFilm")
-                    )
-            exportedCount += len(rows)
+                    try:
+                        merge_relationships(
+                            graph.auto(),
+                            importData[cat],
+                            rel_type,
+                            start_node_key=("Artist", "idArtist"),
+                            end_node_key=("Film", "idFilm")
+                        )
+                    except Exception:
+                        # fallback si merge_relationships indisponible
+                        create_relationships(
+                            graph.auto(),
+                            importData[cat],
+                            rel_type,
+                            start_node_key=("Artist", "idArtist"),
+                            end_node_key=("Film", "idFilm")
+                        )
+            exportedCount += sum(len(v) for v in importData.values())
             print(f"{exportedCount}/{totalCount} relationships exported to Neo4j")
         except Exception as error:
             print(error)
