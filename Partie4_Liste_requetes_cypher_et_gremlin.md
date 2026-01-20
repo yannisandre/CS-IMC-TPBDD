@@ -297,13 +297,13 @@ g.V().hasLabel('Artist').has('id', within('nm99991', 'nm99992')).as('p').
   V().hasLabel('Film').has('id', 'tt45827598').as('f').
   addE('DIRECTED').from('p').to('f').
   select('p', 'f').by('primaryName').by('primaryTitle')
+```
 
 On garantit la présence  des deux artistes (avec partition key et ids uniques) puis on crée une relation `DIRECTED` vers le film.
 
 ---
 
 ### **Exercice 5** (½ pt): Nicole Kidman et son année de naissance
-**Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').has('primaryName', 'Nicole Kidman').valueMap('primaryName', 'birthYear')
 ```
@@ -314,7 +314,6 @@ Récupère et affiche le nom et l'année de naissance de Nicole Kidman.
 ---
 
 ### **Exercice 6** (½ pt): Visualiser l'ensemble des films
-**Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Film').
   order().by('startYear', decr).
