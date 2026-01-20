@@ -371,7 +371,7 @@ g.V().hasLabel('Artist').
 ```
 Filtre les artistes ayant plusieurs rôles distincts, trie par nombre de rôles décroissant **avant la projection**, puis retourne les détails des 5 premiers.
 
-**Réponse:** 5,985 artistes ont eu plusieurs responsabilités (ex. Abbey Abimbola, Adam Baranello, Adam Kritzer, Alec Vrancken, Alex Engel avec quatre rôles chacun).
+**Réponse:** 5,985 artistes ont eu plusieurs responsabilités (ex. Jeronimo Galvan, Adam Baranello, Douglas McDonald, Alec Vrancken, Alex Engel avec quatre rôles chacun).
 
 ---
 
@@ -379,38 +379,34 @@ Filtre les artistes ayant plusieurs rôles distincts, trie par nombre de rôles 
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').as('a').
-  outE('ACTED_IN', 'DIRECTED', 'PRODUCED', 'COMPOSED').as('e').
+  outE('acted in', 'directed', 'produced', 'composed').as('e').
   inV().hasLabel('Film').as('f').
   group().by(select('a', 'f')).by(select('e').label().dedup().fold()).
   unfold().
-  filter(select(values).count(local).is(gt(1))).
-  project('artistId', 'artist', 'filmId', 'film', 'role_count', 'roles').
-    by(select(keys).select('a').coalesce(values('idArtist'), values('nconst'), id())).
+  where(select(values).count(local).is(gt(1))).
+  project('artist', 'film', 'role_count', 'roles').
     by(select(keys).select('a').values('primaryName')).
-    by(select(keys).select('f').coalesce(values('idFilm'), values('tconst'), id())).
     by(select(keys).select('f').values('primaryTitle')).
     by(select(values).count(local)).
     by(select(values))
 ```
-Comptabilise les rôles distincts par paire artiste/film, filtre ceux ayant plusieurs rôles sur un même film et renvoie les détails.
+Regroupe les arêtes par paire artiste/film, filtre ceux ayant plusieurs rôles, puis retourne les détails (nom artiste, titre film, nombre de rôles et liste des rôles).
 
-**Réponse:** 6,218 cas d'artistes avec plusieurs responsabilités dans un même film (ex. Abbey Abimbola, Adam Baranello, Alexandre Astier avec quatre rôles).
-
+**Réponse:** Artistes avec plusieurs responsabilités dans un même film (ex. Richard Wonderling qui a produced et directed dans "Jeffrey's Journey" ou alors Shruti Rai qui a joué et composé "Tum".
 ---
 
 ### **Exercice 11** (2 pt): Film(s) avec le plus d'acteurs
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Film').
-  project('filmId', 'film', 'annee', 'actor_count').
-    by(coalesce(values('idFilm'), values('tconst'), id())).
-    by(values('primaryTitle')).
-    by(values('startYear')).
-    by(in('ACTED_IN').dedup().count()).
-  group().by('actor_count').by(fold()).
-  unfold().order().by(keys, decr).limit(1).select(values).unfold()
+  order().by(inE('acted in').count(), decr).
+  limit(1).
+  project('film', 'annee', 'actor_count').
+    by(coalesce(values('primaryTitle'), constant('N/A'))).
+    by(coalesce(values('startYear'), constant('N/A'))).
+    by(inE('acted in').count())
 ```
-Calcule le nombre d'acteurs par film, groupe par ce nombre pour extraire le maximum puis retourne tous les films ayant ce maximum.
+Groupe les films par nombre d'arêtes "acted in" entrantes (= nombre d'acteurs), trie décroissant pour isoler le groupe avec le maximum, puis retourne les détails des films avec ce maximum.
 
 **Réponse:** Nombre maximum d'acteurs: 10. Films avec ce maximum: environ 4,600 films (limités aux principaux acteurs présents dans la base).
 
