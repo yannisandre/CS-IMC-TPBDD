@@ -2,6 +2,8 @@
 
 ## Yannis Andre & Trystan Aubertin
 
+Pour éxécuter les requêtes de manière plus intéractive, nous avons crée un script "sql_interactif" qui fait la connexion avec la base azure et offre un prompt sql en ligne de commande directement.
+
 ## Exercice 0: Décrivez les tables et les attributs
 
 ### Schéma de la base de données

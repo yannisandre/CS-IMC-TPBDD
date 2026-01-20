@@ -213,9 +213,11 @@ La requête calcule d'abord pour chaque film le nombre distincts d'acteurs elle 
 
 ---
 
-## Version Gremlin (Cosmos DB)
+## Version Gremlin (Cosmos DB) 
 
-### **Exercice 1** (¼ pt): Ajouter une personne et vérifier la création
+Les résultats étant plus ou moins les mêmes, nous avons cette fois omis de préciser les réponse des requêtes pour nous concentrer sur l'explication de ces dernières.
+
+### **Exercice 1**: Ajouter une personne et vérifier la création
 **Requête Gremlin:**
 ```gremlin
 g.addV('Artist').
@@ -237,7 +239,7 @@ renvoie bien 1, ce qui prouve que l'artiste a bien été crée.
 
 ---
 
-### **Exercice 2** (¼ pt): Ajouter un film
+### **Exercice 2**: Ajouter un film
 **Requête Gremlin:**
 ```gremlin
 g.addV('Film').
@@ -258,11 +260,9 @@ g.V().hasLabel('Film').has('id', "t45827598").count()
 
 renvoie 1 ce qui atteste de la création du film.
 
-
-
 ---
 
-### **Exercice 3** (½ pt): Ajouter la relation ACTED_IN
+### **Exercice 3**: Ajouter la relation ACTED_IN
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').has('id', 'nm14585625').as('p').
@@ -274,7 +274,7 @@ Relie l'artiste et le film trouvés, puis retourne les deux noms pour contrôle.
 
 ---
 
-### **Exercice 4** (½ pt): Ajouter deux professeurs comme réalisateurs
+### **Exercice 4**: Ajouter deux professeurs comme réalisateurs
 **Requête Gremlin:**
 ```gremlin
 // ajout des artsites
@@ -303,17 +303,15 @@ On garantit la présence  des deux artistes (avec partition key et ids uniques) 
 
 ---
 
-### **Exercice 5** (½ pt): Nicole Kidman et son année de naissance
+### **Exercice 5** : Nicole Kidman et son année de naissance
 ```gremlin
 g.V().hasLabel('Artist').has('primaryName', 'Nicole Kidman').valueMap('primaryName', 'birthYear')
 ```
 Récupère et affiche le nom et l'année de naissance de Nicole Kidman.
 
-**Réponse:** Nicole Kidman est née en 1967.
-
 ---
 
-### **Exercice 6** (½ pt): Visualiser l'ensemble des films
+### **Exercice 6**: Visualiser l'ensemble des films
 ```gremlin
 g.V().hasLabel('Film').
   order().by('startYear', decr).
@@ -324,22 +322,18 @@ g.V().hasLabel('Film').
 ```
 Liste les films avec titre, année et durée triés par année décroissante. On utilise `coalesce()` pour gérer les films qui ont certains champs non définis.
 
-**Réponse:** 14,294 films sont présents dans la base.
-
 ---
 
-### **Exercice 7** (½ pt): Artistes nés en 1963
+### **Exercice 7**: Artistes nés en 1963
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').has('birthYear', 1963).count()
 ```
 Compte les artistes dont l'année de naissance est 1963.
 
-**Réponse:** 222 artistes sont nés en 1963.
-
 ---
 
-### **Exercice 8** (1 pt): Acteurs qui ont joué dans plus d'un film
+### **Exercice 8**: Acteurs qui ont joué dans plus d'un film
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').
@@ -350,13 +344,11 @@ g.V().hasLabel('Artist').
     by(outE('acted in').count()).
   limit(5)
 ```
-Filtre d'abord les artistes ayant plus d'une relation "acted in", trie par nombre de films décroissant **avant la projection**, puis retourne les 5 premiers avec le nom et le compte de films.
-
-**Réponse:** 8,595 acteurs ont joué dans plus d'un film. Top 5: Yogi Babu (22), Eric Roberts (20), Achyuth Kumar (17), Redin Kingsley (16), Rudy Ledbetter (15)
+Filtre d'abord les artistes ayant plus d'une relation "acted in", trie par nombre de films décroissant **avant la projection**, puis retourne les 5 premiers avec le nom et le nombre de films.
 
 ---
 
-### **Exercice 9** (1 pt): Artistes ayant plusieurs responsabilités
+### **Exercice 9**: Artistes ayant plusieurs responsabilités
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').
@@ -370,11 +362,9 @@ g.V().hasLabel('Artist').
 ```
 Filtre les artistes ayant plusieurs rôles distincts, trie par nombre de rôles décroissant **avant la projection**, puis retourne les détails des 5 premiers.
 
-**Réponse:** 5,985 artistes ont eu plusieurs responsabilités (ex. Jeronimo Galvan, Adam Baranello, Douglas McDonald, Alec Vrancken, Alex Engel avec quatre rôles chacun).
-
 ---
 
-### **Exercice 10** (1 pt): Artistes avec plusieurs responsabilités dans un même film
+### **Exercice 10**: Artistes avec plusieurs responsabilités dans un même film
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Artist').as('a').
@@ -391,10 +381,9 @@ g.V().hasLabel('Artist').as('a').
 ```
 Regroupe les arêtes par paire artiste/film, filtre ceux ayant plusieurs rôles, puis retourne les détails (nom artiste, titre film, nombre de rôles et liste des rôles).
 
-**Réponse:** Artistes avec plusieurs responsabilités dans un même film (ex. Richard Wonderling qui a produced et directed dans "Jeffrey's Journey" ou alors Shruti Rai qui a joué et composé "Tum".
 ---
 
-### **Exercice 11** (2 pt): Film(s) avec le plus d'acteurs
+### **Exercice 11**: Film(s) avec le plus d'acteurs
 **Requête Gremlin:**
 ```gremlin
 g.V().hasLabel('Film').
@@ -405,9 +394,7 @@ g.V().hasLabel('Film').
     by(coalesce(values('startYear'), constant('N/A'))).
     by(inE('acted in').count())
 ```
-Groupe les films par nombre d'arêtes "acted in" entrantes (= nombre d'acteurs), trie décroissant pour isoler le groupe avec le maximum, puis retourne les détails des films avec ce maximum.
-
-**Réponse:** Nombre maximum d'acteurs: 10. Films avec ce maximum: environ 4,600 films (limités aux principaux acteurs présents dans la base).
+Groupe les films par nombre d'arêtes "acted in" entrantes (le nombre d'acteurs) puis trie de manière décroissante pour extraire le groupe avec le maximum, enfin on  retourne les infos des films avec ce maximum.
 
 ---
 
