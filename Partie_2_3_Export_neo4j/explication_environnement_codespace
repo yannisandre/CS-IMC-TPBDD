@@ -1,6 +1,7 @@
 L'environnement de développement mis à notre disposition sur Codespaces contient un conteneur Debian 12 
-avec un venv Python prêt à être utilisé (et qui se lance automatiquement) (/home/vscode/venv/bin/python), les extensions VS Code pour python, neo4j et docker, ainsi que le SDK .NET. 
+avec un venv Python prêt à être utilisé (et qui se lance automatiquement) (/home/vscode/venv/bin/python), les extensions VS Code pour python, neo4j et docker, ainsi que le SDK .NET.
 
 Les dépendances du projet sont listées dans requirements.txt et s'installent automatiquement lors du build du docker via "pip install -r requirements.txt". Des scripts Python peuvent ensuite être exécutés depuis la racine du conteneur, par exemple ":
 
-- export-neo4j.py" fichier à compléter permettant d'exporter les données de la base azure vers une base neo4j.
+- export-neo4j.py
+

@@ -2,17 +2,22 @@
 
 ## Yannis Andre && Trystan Aubertin
 
+### Schéma de la base de données neo4j
+(Artist {idArtist, primaryName, birthYear})
+  -[:ACTED_IN|DIRECTED|PRODUCED|COMPOSED]->
+(Film {idFilm, primaryTitle, startYear, runtimeMinutes})
+
 ### **Exercice 1** (¼ pt): Ajouter une personne et vérifier la création
 **Requête Cypher:**
 ```cypher
 CREATE (p:Artist {
-    nconst: 'tt' + randomUUID(),
+    idArtist: 'tt' + randomUUID(),
     primaryName: 'Yannis Andre',
     birthYear: 2003
 })
 RETURN p.primaryName as name, p.birthYear as birthYear
 ```
-La requête crée un nœud `Artist` avec un random identifiant  , le nom et l'année de naissance, puis renvoie ces deux attributs pour vérifier l'insert.
+La requête crée un nœud `Artist` avec un identifiant random, le nom et l'année de naissance, puis renvoie ces deux attributs pour vérifier l'insert.
 
 **Réponse:** 'Yannis Andre' (née en 2003) a été créée et le nœud existe maintenant dans la base neo4j.
 
@@ -22,16 +27,16 @@ La requête crée un nœud `Artist` avec un random identifiant  , le nom et l'an
 **Requête Cypher:**
 ```cypher
 CREATE (f:Film {
-    tconst: 'film_' + randomUUID(),
+    idFilm: 'film_' + randomUUID(),
     primaryTitle: "L'histoire de mon 20 au cours Infrastructure de donnees",
-    startYear: 2024,
+    startYear: 2026,
     runtimeMinutes: 90,
 })
 RETURN f
 ```
-La requête insère un nœud `Film` avec un identifiant unique, le titre, l'année ainsi que la durée et les genres et  retourne le titre et l'année pour confirmer la création.
+La requête insère un nœud `Film` avec un identifiant unique, le titre, l'année ainsi que la durée et  retourne le titre et l'année pour confirmer la création.
 
-**Réponse:** Le film "L'histoire de mon 20... " a été créé en 2024, il dure 90 minutes.
+**Réponse:** Le film "L'histoire de mon 20 au cours Infrastructure de donnees" a été créé en 2026, il dure 90 minutes.
 
 ---
 
@@ -43,7 +48,7 @@ MATCH (f:Film {primaryTitle: "L'histoire de mon 20 au cours Infrastructure de do
 CREATE (p)-[r:ACTED_IN]->(f)
 RETURN p.primaryName as actor, f.primaryTitle as film
 ```
-La requête trouve l'artiste "Yannis Andre" et le film "L'histoire ..." par leur `primaryName`, elle crée ensuite la relation `ACTED_IN` entre les deux. Elle affiche ensuite les deux noeuds pour confirmation
+La requête trouve l'artiste "Yannis Andre" et le film "L'histoire de mon 20 au cours Infrastructure de donnees" par leur `primaryName`, elle crée ensuite la relation `ACTED_IN` entre les deux. Elle affiche ensuite les deux noeuds pour confirmation
 
 **Réponse:** La relation ACTED_IN a été créée entre Yannis Andre et le film.
 
@@ -54,13 +59,13 @@ La requête trouve l'artiste "Yannis Andre" et le film "L'histoire ..." par leur
 ```cypher
 -- Création des professeurs
 MERGE (p1:Artist {
-    nconst: 'prof_' + randomUUID(),
+    idArtist: 'prof_' + randomUUID(),
     primaryName: 'Luc Vo Van',
     birthYear: 2015
 })
 
 MERGE (p2:Artist {
-    nconst: 'prof_' + randomUUID(),
+    idArtist: 'prof_' + randomUUID(),
     primaryName: 'Thierry Rapatout',
     birthYear: 2022
 })
@@ -74,7 +79,7 @@ RETURN p.primaryName as director, f.primaryTitle as film
 ```
 Les deux blocs `MERGE` permettent de garantir la présence des artistes (ça les crée s'ils sont absents). Les `MATCH` récupèrent ces artistes ainsi que le film cible, `CREATE` ajoute une relation `DIRECTED` pour chacun avant de retourner les couples réalisateur/film.
 
-**Réponse:** Deux professeurs ont été créés et ajoutés comme réalisateurs du film "l'histoire de mon 20...":
+**Réponse:** Deux professeurs ont été créés et ajoutés comme réalisateurs du film "l'histoire de mon 20 au cours Infrastructure de donnees":
 - Thierry Rapatout (né 2022)
 - Luc Vo Van (né 2015)
 (les dates sont volontairement flatteuses, ne nous remerciez pas)
